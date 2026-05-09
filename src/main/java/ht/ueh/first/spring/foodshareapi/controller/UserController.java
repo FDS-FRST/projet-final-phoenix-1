@@ -6,6 +6,8 @@ import ht.ueh.first.spring.foodshareapi.model.User;
 import ht.ueh.first.spring.foodshareapi.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import java.util.stream.Collectors;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -45,6 +47,14 @@ public class UserController {
         User updatedUser = userService.updateUser(id, request);
 
         return mapToResponse(updatedUser);
+    }
+    @GetMapping
+    public List<UserResponseDTO> getAllUsers() {
+
+        return userService.getAllUsers()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {

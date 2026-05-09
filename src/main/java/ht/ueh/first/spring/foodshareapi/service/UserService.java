@@ -6,6 +6,7 @@ import ht.ueh.first.spring.foodshareapi.model.User;
 import ht.ueh.first.spring.foodshareapi.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -44,5 +45,9 @@ public class UserService {
     // DELETE
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+    // Afficher tous les utilisateurs
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 }
