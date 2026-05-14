@@ -1,5 +1,6 @@
 package ht.ueh.first.spring.foodshareapi.dto;
 
+import ht.ueh.first.spring.foodshareapi.model.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -15,8 +16,7 @@ public class UserRequestDTO {
     @NotBlank(message = "Password is required")
     private String password;
 
-    @NotBlank(message = "Role is required")
-    private String role;
+    private Role role;
 
     public String getName() {
         return name;
@@ -30,7 +30,7 @@ public class UserRequestDTO {
         return password;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 }

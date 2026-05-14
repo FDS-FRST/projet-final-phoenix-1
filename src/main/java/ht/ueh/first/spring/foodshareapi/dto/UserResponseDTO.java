@@ -1,13 +1,15 @@
 package ht.ueh.first.spring.foodshareapi.dto;
 
+import ht.ueh.first.spring.foodshareapi.model.Role;
+
 public class UserResponseDTO {
 
     private Long id;
     private String name;
     private String email;
-    private String role;
+    private Role role;
 
-    public UserResponseDTO(Long id, String name, String email, String role) {
+    public UserResponseDTO(Long id, String name, String email, Role role) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -26,7 +28,6 @@ public class UserResponseDTO {
         return email;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
-    }
-}
+    }}
