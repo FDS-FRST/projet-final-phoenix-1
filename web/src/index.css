@@ -1,0 +1,305 @@
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  /* border-inline: 1px solid var(--border); */
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+/* ============================================ */
+/* RESPONSIVE DESIGN - TABLET & MOBILE          */
+/* ============================================ */
+
+/* TABLET (max-width: 1024px) */
+@media (max-width: 1024px) {
+  /* Sidebar - devient horizontale en haut */
+  .dashboard-sidebar {
+    width: 100% !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 12px !important;
+    padding: 12px !important;
+  }
+
+  /* Stats cards - 4 par ligne sur tablette */
+  .dashboard-stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Grille des offres - 2 colonnes */
+  .offers-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Sidebar filtre - devient horizontal */
+  .sidebar-filter {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
+/* Change l'arrière-plan du graphique au survol */
+.recharts-wrapper:hover {
+  background-color: #f0f4f1 !important;
+  transition: background-color 0.2s ease;
+  border-radius: 24px;
+}
+/* MOBILE (max-width: 768px) */
+@media (max-width: 768px) {
+  /* ===== NAVBAR ===== */
+  nav {
+    padding: 10px 16px !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+
+  /* Logo plus petit */
+  nav > div:first-child {
+    gap: 6px !important;
+  }
+
+  nav > div:first-child > div:first-child {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 14px !important;
+  }
+
+  nav > div:first-child span {
+    font-size: 16px !important;
+  }
+
+  /* Nom offreur - prend toute la largeur sur mobile */
+  nav > span {
+    order: 3 !important;
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 11px !important;
+  }
+
+  /* Actions (badge, notif, déconnexion) */
+  nav > div:last-child {
+    gap: 8px !important;
+  }
+
+  /* Badge OFFREUR plus petit */
+  nav > div:last-child > span:first-child {
+    font-size: 9px !important;
+    padding: 3px 8px !important;
+  }
+
+  /* Bouton notification */
+  nav button[style*="border-radius: 50%"] {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 12px !important;
+  }
+
+  /* Bouton déconnexion */
+  nav button:last-child {
+    padding: 4px 10px !important;
+    font-size: 10px !important;
+  }
+
+  /* ===== DASHBOARD ===== */
+  .dashboard-sidebar {
+    flex-direction: column !important;
+  }
+
+  /* Stats cards - 2 par ligne sur mobile */
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Grille des offres - 1 seule colonne */
+  .offers-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tabs */
+  .dashboard-tabs {
+    padding: 8px 12px !important;
+    gap: 6px !important;
+  }
+
+  .dashboard-tabs button {
+    padding: 5px 12px !important;
+    font-size: 10px !important;
+  }
+
+  /* Body - passage en colonne */
+  .dashboard-body {
+    flex-direction: column !important;
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  /* Sidebar prend toute la largeur */
+  .dashboard-sidebar {
+    width: 100% !important;
+  }
+
+  /* Tableau responsive */
+  .reservation-table-wrapper {
+    overflow-x: auto !important;
+  }
+
+  .reservation-table {
+    min-width: 600px !important;
+  }
+
+  /* Bouton nouvelle offre */
+  .new-offer-btn {
+    width: 100% !important;
+    padding: 10px !important;
+  }
+}
+
+/* PETIT MOBILE (max-width: 480px) */
+@media (max-width: 480px) {
+  /* Navbar encore plus compacte */
+  nav {
+    padding: 8px 12px !important;
+  }
+
+  nav > div:first-child span {
+    font-size: 14px !important;
+  }
+
+  /* Stats cards - 2 par ligne, padding réduit */
+  .dashboard-stats-grid > div {
+    padding: 8px 10px !important;
+  }
+
+  .dashboard-stats-grid > div p:first-of-type {
+    font-size: 9px !important;
+  }
+
+  .dashboard-stats-grid > div p:last-of-type {
+    font-size: 16px !important;
+  }
+
+  /* Tabs - défilement horizontal */
+  .dashboard-tabs {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .dashboard-tabs button {
+    flex-shrink: 0 !important;
+  }
+
+  /* Modal */
+  .offer-modal {
+    width: 95% !important;
+    padding: 16px !important;
+  }
+}
