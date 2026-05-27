@@ -56,6 +56,6 @@ export const fetchReservations = (offreId) =>
   api.get(`/reservations/offre/${offreId}`);
 export const fetchAllReservations = () => api.get("/reservations");
 export const updateStatutReserv = (id, statut) =>
-  api.patch(`/reservations/${id}/statut`, { statut });
+  api.put(`/reservations/${id}/status?status=${statut}`);  // put comme dans l'API
 
 export default api;
