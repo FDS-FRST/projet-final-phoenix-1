@@ -1,9 +1,8 @@
-import  { createContext, useState, useContext, useEffect } from "react";
-import {
-  login as apiLogin,
-  register as apiRegister,
-  getCurrentUser,
-} from "../services/authService";
+/**
+ * AuthContext.jsx - Gestion authentification avec API Axios
+ */
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { login as apiLogin, register as apiRegister } from "../services/api";
 
 const AuthContext = createContext();
 
@@ -19,40 +18,61 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // ← DOIT être true au départ
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Vérifier si un utilisateur est déjà connecté
   useEffect(() => {
-    const checkUser = async () => {
-      const token = localStorage.getItem("token");
-      console.log("Token trouvé:", token); // ← Pour debug
+    const token = localStorage.getItem("foodshare_token");
+    const storedUser = localStorage.getItem("foodshare_user");
 
-      if (token) {
-        try {
-          const userData = await getCurrentUser();
-          console.log("Utilisateur chargé:", userData); // ← Pour debug
-          setUser(userData);
-        } catch (err) {
-          console.log("Erreur:", err); // ← Pour debug
-          localStorage.removeItem("token");
-          setUser(null);
-        }
-      }
-      setLoading(false); // ← On dit que le chargement est fini
-    };
-
-    checkUser();
+    if (token && storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
+  // Connexion
+
+  // const login = async (email, password) => {
+  //   setError(null);
+  //   setLoading(true);
+  //   try {
+  //     const response = await apiLogin({ email, password });
+  //     const { token, user: userData } = response.data;
+
+  //     localStorage.setItem("foodshare_token", token);
+  //     localStorage.setItem("foodshare_user", JSON.stringify(userData));
+  //     setUser(userData);
+
+  //     return { success: true, user: userData };
+  //   } catch (err) {
+  //     const message = err.response?.data?.message || "Erreur de connexion";
+  //     setError(message);
+  //     return { success: false, error: message };
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  //à remplacer après implementation spring auth
   const login = async (email, password) => {
     setError(null);
     setLoading(true);
     try {
-      const response = await apiLogin(email, password);
-      localStorage.setItem("token", response.token);
-      setUser(response.user);
-      console.log("Connexion réussie:", response.user); // ← Pour debug
-      return { success: true, user: response.user };
+      // Pour tester, on crée un faux utilisateur
+      const fakeUser = {
+        id: 1,
+        name: "Test Restaurant",
+        email: email,
+        role: "OFFREUR",
+      };
+
+      localStorage.setItem("foodshare_token", "fake-token-123");
+      localStorage.setItem("foodshare_user", JSON.stringify(fakeUser));
+      setUser(fakeUser);
+
+      return { success: true, user: fakeUser };
     } catch (err) {
       setError(err.message);
       return { success: false, error: err.message };
@@ -60,27 +80,33 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
+  // Inscription
   const register = async (userData) => {
     setError(null);
     setLoading(true);
     try {
       const response = await apiRegister(userData);
-      localStorage.setItem("token", response.token);
-      setUser(response.user);
-      return { success: true, user: response.user };
+      const { token, user: newUser } = response.data;
+
+      localStorage.setItem("foodshare_token", token);
+      localStorage.setItem("foodshare_user", JSON.stringify(newUser));
+      setUser(newUser);
+
+      return { success: true, user: newUser };
     } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
+      const message = err.response?.data?.message || "Erreur d'inscription";
+      setError(message);
+      return { success: false, error: message };
     } finally {
       setLoading(false);
     }
   };
 
+  // Déconnexion
   const logout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("foodshare_token");
+    localStorage.removeItem("foodshare_user");
     setUser(null);
-    console.log("Déconnexion"); // ← Pour debug
   };
 
   const value = {

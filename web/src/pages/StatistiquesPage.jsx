@@ -1,7 +1,7 @@
 /**
  * StatistiquesPage.jsx - Graphiques et statistiques
  */
-import "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -18,43 +18,11 @@ import {
   Cell,
 } from "recharts";
 import { ChartColumn, Salad, ChartSpline, ListTodo } from "lucide-react";
+import { fetchAllReservations, fetchOffres } from "../services/api";
 
-// Police à utiliser sur tous les graphiques
 const CHART_FONT =
   "system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif";
 
-const VENTES_PAR_JOUR = [
-  { jour: "Lun", commandes: 12, chiffre: 48 },
-  { jour: "Mar", commandes: 15, chiffre: 62 },
-  { jour: "Mer", commandes: 18, chiffre: 75 },
-  { jour: "Jeu", commandes: 22, chiffre: 92 },
-  { jour: "Ven", commandes: 25, chiffre: 108 },
-  { jour: "Sam", commandes: 8, chiffre: 32 },
-  { jour: "Dim", commandes: 4, chiffre: 16 },
-];
-
-const PLATS_POPULAIRES = [
-  { nom: "Pâtes Carbonara", quantite: 45, couleur: "#2D7A4F" },
-  { nom: "Quiche Lorraine", quantite: 28, couleur: "#4CAF7D" },
-  { nom: "Salade César", quantite: 24, couleur: "#8BC34A" },
-  { nom: "Croissant", quantite: 18, couleur: "#FFC107" },
-];
-
-const STATUTS = [
-  { nom: "Retirées", valeur: 68, couleur: "#2D7A4F" },
-  { nom: "Non retirées", valeur: 12, couleur: "#EF4444" },
-  { nom: "En attente", valeur: 20, couleur: "#F97316" },
-];
-
-const EVOLUTION = [
-  { mois: "Jan", ventes: 120, chiffre: 480 },
-  { mois: "Fév", ventes: 135, chiffre: 540 },
-  { mois: "Mar", ventes: 150, chiffre: 600 },
-  { mois: "Avr", ventes: 175, chiffre: 700 },
-  { mois: "Mai", ventes: 210, chiffre: 840 },
-];
-
-// Style personnalisé pour le Tooltip
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -82,8 +50,174 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const StatistiquesPage = () => {
-  const totalCommandes = VENTES_PAR_JOUR.reduce((s, d) => s + d.commandes, 0);
-  const totalChiffre = VENTES_PAR_JOUR.reduce((s, d) => s + d.chiffre, 0);
+  const [ventesParJour, setVentesParJour] = useState([
+    { jour: "Lun", commandes: 0, chiffre: 0 },
+    { jour: "Mar", commandes: 0, chiffre: 0 },
+    { jour: "Mer", commandes: 0, chiffre: 0 },
+    { jour: "Jeu", commandes: 0, chiffre: 0 },
+    { jour: "Ven", commandes: 0, chiffre: 0 },
+    { jour: "Sam", commandes: 0, chiffre: 0 },
+    { jour: "Dim", commandes: 0, chiffre: 0 },
+  ]);
+  const [platsPopulaires, setPlatsPopulaires] = useState([]);
+  const [statuts, setStatuts] = useState([]);
+  const [evolution, setEvolution] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalCommandes, setTotalCommandes] = useState(0);
+  const [totalChiffre, setTotalChiffre] = useState(0);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      setLoading(true);
+      try {
+        const [reservationsRes] = await Promise.all([fetchAllReservations()]);
+
+        const reservations = reservationsRes.data || [];
+
+        // Calcul des ventes par jour
+        const joursMap = {
+          1: "Lun",
+          2: "Mar",
+          3: "Mer",
+          4: "Jeu",
+          5: "Ven",
+          6: "Sam",
+          0: "Dim",
+        };
+
+        const ventesParJourCalc = [
+          { jour: "Lun", commandes: 0, chiffre: 0 },
+          { jour: "Mar", commandes: 0, chiffre: 0 },
+          { jour: "Mer", commandes: 0, chiffre: 0 },
+          { jour: "Jeu", commandes: 0, chiffre: 0 },
+          { jour: "Ven", commandes: 0, chiffre: 0 },
+          { jour: "Sam", commandes: 0, chiffre: 0 },
+          { jour: "Dim", commandes: 0, chiffre: 0 },
+        ];
+
+        let totalCmd = 0;
+        let totalCA = 0;
+
+        reservations.forEach((r) => {
+          totalCmd++;
+          totalCA += r.prix || 0;
+
+          if (r.dateReservation) {
+            const date = new Date(r.dateReservation);
+            const jourIndex = date.getDay();
+            const jourNom = joursMap[jourIndex];
+            const jourData = ventesParJourCalc.find((v) => v.jour === jourNom);
+            if (jourData) {
+              jourData.commandes++;
+              jourData.chiffre += r.prix || 0;
+            }
+          }
+        });
+
+        setTotalCommandes(totalCmd);
+        setTotalChiffre(totalCA);
+        setVentesParJour(ventesParJourCalc);
+
+        // Calcul des plats populaires
+        const platCount = {};
+        reservations.forEach((r) => {
+          const platNom = r.titreOffre || "Offre";
+          platCount[platNom] = (platCount[platNom] || 0) + 1;
+        });
+
+        const platsPopulairesCalc = Object.entries(platCount)
+          .map(([nom, quantite], index) => ({
+            nom,
+            quantite,
+            couleur: ["#2D7A4F", "#4CAF7D", "#8BC34A", "#FFC107"][index % 4],
+          }))
+          .slice(0, 4);
+
+        setPlatsPopulaires(platsPopulairesCalc);
+
+        // Calcul des statuts
+        const retires = reservations.filter(
+          (r) => r.statut === "RETIREE",
+        ).length;
+        const nonRetires = reservations.filter(
+          (r) => r.statut === "NON_RETIREE",
+        ).length;
+        const enAttente = reservations.filter(
+          (r) => r.statut === "EN_ATTENTE",
+        ).length;
+
+        setStatuts([
+          { nom: "Retirées", valeur: retires, couleur: "#2D7A4F" },
+          { nom: "Non retirées", valeur: nonRetires, couleur: "#EF4444" },
+          { nom: "En attente", valeur: enAttente, couleur: "#F97316" },
+        ]);
+
+        // Évolution mensuelle (exemple basé sur les données)
+        const moisMap = {};
+        reservations.forEach((r) => {
+          if (r.dateReservation) {
+            const mois = new Date(r.dateReservation).toLocaleString("fr", {
+              month: "short",
+            });
+            if (!moisMap[mois]) {
+              moisMap[mois] = { commandes: 0, chiffre: 0 };
+            }
+            moisMap[mois].commandes++;
+            moisMap[mois].chiffre += r.prix || 0;
+          }
+        });
+
+        const evolutionCalc = Object.entries(moisMap).map(([mois, data]) => ({
+          mois,
+          ventes: data.commandes,
+          chiffre: data.chiffre,
+        }));
+
+        setEvolution(
+          evolutionCalc.length > 0
+            ? evolutionCalc
+            : [
+                { mois: "Jan", ventes: 0, chiffre: 0 },
+                { mois: "Fév", ventes: 0, chiffre: 0 },
+                { mois: "Mar", ventes: 0, chiffre: 0 },
+                { mois: "Avr", ventes: 0, chiffre: 0 },
+                { mois: "Mai", ventes: 0, chiffre: 0 },
+              ],
+        );
+      } catch (error) {
+        console.error("Erreur chargement statistiques:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+  }, []);
+
+  const tauxRetrait =
+    totalCommandes > 0
+      ? Math.round(
+          ((statuts.find((s) => s.nom === "Retirées")?.valeur || 0) /
+            totalCommandes) *
+            100,
+        )
+      : 0;
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: "12px",
+          padding: "60px",
+          textAlign: "center",
+          color: "#9CA3AF",
+        }}
+      >
+        Chargement des statistiques...
+      </div>
+    );
+  }
 
   return (
     <div
@@ -155,7 +289,7 @@ const StatistiquesPage = () => {
               fontFamily: CHART_FONT,
             }}
           >
-            {totalChiffre} €
+            {totalChiffre.toFixed(2)} €
           </p>
         </div>
         <div
@@ -183,7 +317,7 @@ const StatistiquesPage = () => {
               fontFamily: CHART_FONT,
             }}
           >
-            Pâtes Carbonara
+            {platsPopulaires[0]?.nom || "Aucun"}
           </p>
         </div>
         <div
@@ -211,7 +345,7 @@ const StatistiquesPage = () => {
               fontFamily: CHART_FONT,
             }}
           >
-            85%
+            {tauxRetrait}%
           </p>
         </div>
       </div>
@@ -227,13 +361,16 @@ const StatistiquesPage = () => {
             color: "#1B4332",
             marginBottom: "16px",
             fontFamily: CHART_FONT,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
           <ChartColumn size={16} />
-          <p>Ventes de la semaine</p>
+          Ventes de la semaine
         </h3>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={VENTES_PAR_JOUR}>
+          <BarChart data={ventesParJour}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5EDE9" />
             <XAxis
               dataKey="jour"
@@ -276,15 +413,18 @@ const StatistiquesPage = () => {
               color: "#1B4332",
               marginBottom: "16px",
               fontFamily: CHART_FONT,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
             <Salad size={16} />
-            <p>Plats populaires</p>
+            Plats populaires
           </h3>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
-                data={PLATS_POPULAIRES}
+                data={platsPopulaires}
                 dataKey="quantite"
                 nameKey="nom"
                 cx="50%"
@@ -298,7 +438,7 @@ const StatistiquesPage = () => {
                   fill: "#374151",
                 }}
               >
-                {PLATS_POPULAIRES.map((e, i) => (
+                {platsPopulaires.map((e, i) => (
                   <Cell key={i} fill={e.couleur} />
                 ))}
               </Pie>
@@ -316,15 +456,18 @@ const StatistiquesPage = () => {
               color: "#1B4332",
               marginBottom: "16px",
               fontFamily: CHART_FONT,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
             }}
           >
             <ListTodo size={16} />
-            <p>Statut commandes</p>
+            Statut commandes
           </h3>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
-                data={STATUTS}
+                data={statuts}
                 dataKey="valeur"
                 nameKey="nom"
                 cx="50%"
@@ -338,7 +481,7 @@ const StatistiquesPage = () => {
                   fill: "#374151",
                 }}
               >
-                {STATUTS.map((e, i) => (
+                {statuts.map((e, i) => (
                   <Cell key={i} fill={e.couleur} />
                 ))}
               </Pie>
@@ -359,13 +502,16 @@ const StatistiquesPage = () => {
             color: "#1B4332",
             marginBottom: "16px",
             fontFamily: CHART_FONT,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
           <ChartSpline size={16} />
-          <p>Évolution mensuelle</p>
+          Évolution mensuelle
         </h3>
         <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={EVOLUTION}>
+          <LineChart data={evolution}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5EDE9" />
             <XAxis
               dataKey="mois"

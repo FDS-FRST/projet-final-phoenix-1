@@ -1,68 +1,52 @@
 /**
  * HistoriquePage.jsx - Historique des commandes passées
  */
-import  { useState } from "react";
-import { Search, Calendar, Filter, } from "lucide-react";
-
-const MOCK_HISTORIQUE = [
-  {
-    id: 1,
-    client: "Alice Martin",
-    plat: "Pâtes Carbonara",
-    quantite: 2,
-    prix: 3.5,
-    date: "2025-05-09",
-    heure: "10:35",
-    statut: "RETIREE",
-  },
-  {
-    id: 2,
-    client: "Thomas Dubois",
-    plat: "Quiche Lorraine",
-    quantite: 1,
-    prix: 2.5,
-    date: "2025-05-08",
-    heure: "11:20",
-    statut: "RETIREE",
-  },
-  {
-    id: 3,
-    client: "Sophie Bernard",
-    plat: "Salade César",
-    quantite: 1,
-    prix: 4.0,
-    date: "2025-05-07",
-    heure: "09:15",
-    statut: "NON_RETIREE",
-  },
-  {
-    id: 4,
-    client: "Lucas Petit",
-    plat: "Croissant",
-    quantite: 3,
-    prix: 0,
-    date: "2025-05-06",
-    heure: "07:45",
-    statut: "RETIREE",
-  },
-  {
-    id: 5,
-    client: "Emma Dubois",
-    plat: "Pâtes Carbonara",
-    quantite: 1,
-    prix: 3.5,
-    date: "2025-05-05",
-    heure: "12:30",
-    statut: "RETIREE",
-  },
-];
+import { useState, useEffect } from "react";
+import { Search, Calendar, Filter } from "lucide-react";
+import { fetchAllReservations } from "../services/api";
 
 const HistoriquePage = () => {
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatut, setFilterStatut] = useState("TOUS");
   const [filterDate, setFilterDate] = useState("");
 
-  const filtered = MOCK_HISTORIQUE.filter((item) => {
+  // Charger les réservations depuis l'API
+  useEffect(() => {
+    const loadReservations = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchAllReservations();
+        const data = response.data || [];
+
+        // Transformer les données pour l'affichage (garde ton format)
+        const formattedData = data.map((r) => ({
+          id: r.id,
+          client: r.nomEtudiant || r.etudiant?.name || "Étudiant",
+          plat: r.titreOffre || r.offre?.titre || "Offre",
+          quantite: r.quantite || 1,
+          prix: r.prix || 0,
+          date:
+            r.dateReservation?.substring(0, 10) ||
+            new Date().toISOString().substring(0, 10),
+          heure: r.dateReservation?.substring(11, 16) || "12:00",
+          statut: r.statut || "EN_ATTENTE",
+        }));
+
+        setReservations(formattedData);
+      } catch (error) {
+        console.error("Erreur chargement historique:", error);
+        setReservations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReservations();
+  }, []);
+
+  const filtered = reservations.filter((item) => {
     const matchSearch =
       item.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.plat.toLowerCase().includes(searchTerm.toLowerCase());
@@ -74,9 +58,25 @@ const HistoriquePage = () => {
   const totalCommandes = filtered.length;
   const totalRetirees = filtered.filter((i) => i.statut === "RETIREE").length;
   const chiffreAffaires = filtered.reduce(
-    (sum, i) => sum + i.prix * i.quantite,
+    (sum, i) => sum + (i.prix || 0) * (i.quantite || 1),
     0,
   );
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: "14px",
+          padding: "60px",
+          textAlign: "center",
+          color: "#9CA3AF",
+        }}
+      >
+        Chargement de l'historique...
+      </div>
+    );
+  }
 
   return (
     <div
@@ -178,6 +178,7 @@ const HistoriquePage = () => {
             <option value="TOUS">Tous</option>
             <option value="RETIREE">Retirée</option>
             <option value="NON_RETIREE">Non retirée</option>
+            <option value="EN_ATTENTE">En attente</option>
           </select>
         </div>
         <div
@@ -260,15 +261,28 @@ const HistoriquePage = () => {
                   <span
                     style={{
                       background:
-                        item.statut === "RETIREE" ? "#DCFCE7" : "#FEE2E2",
-                      color: item.statut === "RETIREE" ? "#166534" : "#991B1B",
+                        item.statut === "RETIREE"
+                          ? "#DCFCE7"
+                          : item.statut === "EN_ATTENTE"
+                            ? "#FEF3C7"
+                            : "#FEE2E2",
+                      color:
+                        item.statut === "RETIREE"
+                          ? "#166534"
+                          : item.statut === "EN_ATTENTE"
+                            ? "#92400E"
+                            : "#991B1B",
                       padding: "4px 8px",
                       borderRadius: "20px",
                       fontSize: "10px",
                       fontWeight: 600,
                     }}
                   >
-                    {item.statut === "RETIREE" ? "✓ Retirée" : "✗ Non retirée"}
+                    {item.statut === "RETIREE"
+                      ? "✓ Retirée"
+                      : item.statut === "EN_ATTENTE"
+                        ? "⏳ En attente"
+                        : "✗ Non retirée"}
                   </span>
                 </td>
               </tr>
@@ -279,7 +293,7 @@ const HistoriquePage = () => {
           <div
             style={{ textAlign: "center", padding: "40px", color: "#9CA3AF" }}
           >
-            Aucune commande
+            Aucune commande trouvée
           </div>
         )}
       </div>

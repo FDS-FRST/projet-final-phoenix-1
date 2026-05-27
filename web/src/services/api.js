@@ -54,7 +54,7 @@ export const deleteOffre = (id) => api.delete(`/offres/${id}`);
 // ── RÉSERVATIONS ──────────────────────────────────────────────────────────
 export const fetchReservations = (offreId) =>
   api.get(`/reservations/offre/${offreId}`);
-export const fetchAllReservations = () => api.get("/reservations/mes-offres");
+export const fetchAllReservations = () => api.get("/reservations");
 export const updateStatutReserv = (id, statut) =>
   api.patch(`/reservations/${id}/statut`, { statut });
 

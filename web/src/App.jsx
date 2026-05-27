@@ -26,7 +26,7 @@ function AppContent() {
     >
       {/* Navbar - On passe le nom et la fonction de déconnexion */}
       {isAuthenticated && (
-        <Navbar offreurNom={user?.nom || "Mon restaurant"} onLogout={logout} />
+        <Navbar offreurNom={user?.name || "Mon restaurant"} onLogout={logout} />
       )}
 
       {/* Contenu principal */}
