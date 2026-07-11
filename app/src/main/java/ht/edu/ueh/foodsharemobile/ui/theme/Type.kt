@@ -1,0 +1,5 @@
+package ht.edu.ueh.foodsharemobile.ui.theme
+
+import androidx.compose.material3.Typography
+
+val Typography = Typography()
